@@ -12,7 +12,7 @@ import "./App.css";
 const App = () => {
   const [input, setInput] = useState("");
   const [imageUrl, setImageUrl] = useState("");
-  const [box, setBox] = useState("");
+  // const [box, setBox] = useState("");
   const [boxes, setBoxes] = useState([]);
   const [route, setRoute] = useState("signin");
   const [isSignedIn, setIsSignedIn] = useState(false);
@@ -100,13 +100,14 @@ const App = () => {
       .then((response) => response.json())
       .then((response) => {
         if (response) {
-          console.log(response);
           if (response.outputs[0].data.regions.length != 0) {
+            const faces = response.outputs[0].data.regions.length;
             fetch("http://localhost:3000/image", {
               method: "put",
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify({
                 id: user.id,
+                faces: faces,
               }),
             })
               .then((response) => response.json())
@@ -115,6 +116,7 @@ const App = () => {
                 setUser({ ...user, entries: count }); //this method works better
               });
             displayFaceBox(calculateFaceLocation(response));
+            setError("");
           } else {
             setError("Sorry, I could not find a face");
           }
