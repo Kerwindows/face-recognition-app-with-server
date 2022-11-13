@@ -13,8 +13,10 @@ const App = () => {
   const [input, setInput] = useState("");
   const [imageUrl, setImageUrl] = useState("");
   const [box, setBox] = useState("");
+  const [boxes, setBoxes] = useState([]);
   const [route, setRoute] = useState("signin");
   const [isSignedIn, setIsSignedIn] = useState(false);
+  const [error, setError] = useState("");
   const [user, setUser] = useState({
     id: "",
     name: "",
@@ -40,22 +42,48 @@ const App = () => {
   // };
   // componemtDidMount();
 
+  //GET ONE BOX
+  // const calculateFaceLocation = (data) => {
+  //   const clarifaiFace =
+  //     data.outputs[0].data.regions[0].region_info.bounding_box;
+  //   const image = document.getElementById("inputimage");
+  //   const width = Number(image.width);
+  //   const height = Number(image.height);
+  //   return {
+  //     leftCol: clarifaiFace.left_col * width,
+  //     topRow: clarifaiFace.top_row * height,
+  //     rightCol: width - clarifaiFace.right_col * width,
+  //     bottomRow: height - clarifaiFace.bottom_row * height,
+  //   };
+  // };
+
+  //GET ONE BOX
+  // const displayFaceBox = (box) => {
+  //   setBox(box);
+  // };
+
+  //GET MULTIPLE BOXES
   const calculateFaceLocation = (data) => {
-    const clarifaiFace =
-      data.outputs[0].data.regions[0].region_info.bounding_box;
+    const clarifaiFaces = data.outputs[0].data.regions.map(
+      (region) => region.region_info.bounding_box
+    );
     const image = document.getElementById("inputimage");
     const width = Number(image.width);
     const height = Number(image.height);
-    return {
-      leftCol: clarifaiFace.left_col * width,
-      topRow: clarifaiFace.top_row * height,
-      rightCol: width - clarifaiFace.right_col * width,
-      bottomRow: height - clarifaiFace.bottom_row * height,
-    };
+
+    return clarifaiFaces.map((face) => {
+      return {
+        leftCol: face.left_col * width,
+        topRow: face.top_row * height,
+        rightCol: width - face.right_col * width,
+        bottomRow: height - face.bottom_row * height,
+      };
+    });
   };
 
-  const displayFaceBox = (box) => {
-    setBox(box);
+  //GET MULTIPLE BOXES
+  const displayFaceBox = (boxes) => {
+    setBoxes(boxes);
   };
 
   const onInputChange = (event) => {
@@ -72,7 +100,8 @@ const App = () => {
       .then((response) => response.json())
       .then((response) => {
         if (response) {
-          if ("regions" in response.outputs[0].data) {
+          console.log(response);
+          if (response.outputs[0].data.regions.length != 0) {
             fetch("http://localhost:3000/image", {
               method: "put",
               headers: { "Content-Type": "application/json" },
@@ -87,11 +116,13 @@ const App = () => {
               });
             displayFaceBox(calculateFaceLocation(response));
           } else {
-            console.log("cannot find face");
+            setError("Sorry, I could not find a face");
           }
         }
       })
-      .catch((err) => console.log(err));
+      .catch((err) => {
+        setError("Sorry, I could not find a face");
+      });
   };
 
   const onRouteChange = (route) => {
@@ -116,12 +147,12 @@ const App = () => {
       {route === "home" ? (
         <div>
           <Logo />
-          <Rank name={user.name} entries={user.entries} />
+          <Rank name={user.name} entries={user.entries} error={error} />
           <ImageLinkForm
             onInputChange={onInputChange}
             onButtonSubmit={onButtonSubmit}
           />
-          <FaceRecognition box={box} imageUrl={imageUrl} />
+          <FaceRecognition boxes={boxes} imageUrl={imageUrl} />
         </div>
       ) : route === "signin" ? (
         <Signin loadUser={loadUser} onRouteChange={onRouteChange} />
