@@ -1,6 +1,5 @@
 import React, { useState } from "react";
 import ParticlesBg from "particles-bg";
-import Clarifai from "clarifai";
 import FaceRecognition from "./components/FaceRecognition/FaceRecognition";
 import Navigation from "./components/Navigation/Navigation";
 import Signin from "./components/Signin/Signin";
